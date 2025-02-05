@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     })
     if (userExist) {
         return new NextResponse("User already exists", {
-            status: 400
+            status: 401
         })
     }
     try {

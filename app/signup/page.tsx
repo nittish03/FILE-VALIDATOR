@@ -13,6 +13,10 @@ import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
 
 const SignUpPage = () => {
+  const {data:session} = useSession();
+  if(session){
+    redirect('/');
+  }
     const router = useRouter();
     const [otp, setOtp] = useState('');
   const [username, setUsername] = useState('');

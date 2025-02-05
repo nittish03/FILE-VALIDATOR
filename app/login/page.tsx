@@ -6,18 +6,22 @@ import { redirect, useRouter } from 'next/navigation'
 import { FcGoogle } from "react-icons/fc";
 import { signIn } from 'next-auth/react'
 import { toast } from 'react-hot-toast';
+import { useSession } from 'next-auth/react';
 
 
 const LoginPage = () => {
+    const {data:session} = useSession()
     const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPass, setShowPass] = useState(false);
 
+if(session){
+    redirect('/');
+}
 
   const handleClick = () => {
-    
       const loading = toast.loading("Logging in");
       try {
         signIn("google",{callbackUrl: '/'});
@@ -63,6 +67,8 @@ const LoginPage = () => {
       toast.dismiss(loading);
       toast.error("Failed to sign in");
         console.log(error);
+    }finally{
+        toast.dismiss(loading);
     }
     return;
 }
