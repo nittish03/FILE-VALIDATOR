@@ -1,15 +1,16 @@
 'use client';
 import React, { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import {toast} from "react-toastify";
 import axios from "axios";
 import { MdDeleteForever } from "react-icons/md";
-
+import { useRouter } from "next/navigation";
 export default function LandingPage() {
   const [file, setFile] = useState(null);
   const [title, setTitle] = useState("");
   const [allFiles, setAllFiles] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredFiles, setFilteredFiles] = useState([]);
+  const router = useRouter();
 
 
 
@@ -71,6 +72,7 @@ export default function LandingPage() {
     }
   };
 
+  // Handle file deletion
   const handleDelete = async(id) =>{
     const loading = toast.loading("Deleting...");
     try{
@@ -89,6 +91,41 @@ export default function LandingPage() {
     
   }
 
+  const handleValidity = async(id) =>{
+    const loading = toast.loading("Validating...");
+    try{
+      const response = await axios.post("/api/get-single-upload",{id});
+      const aiResponse = await axios({
+        url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${
+          process.env.NEXT_PUBLIC_GEMINI_API_KEY
+        }`,
+        method: "post",
+        data: {
+          contents: [
+            {
+              parts: [
+                {
+                  text: `Tell me whether if the invoice is valid or not according to the invoice data i am providing you and why, INVOICE DATA :  ${response.data.data.result}`,
+                },
+              ],
+            },
+          ],
+        },
+      });
+      toast.dismiss(loading);
+      toast.success("File validation successful.");
+      router.push( `/report?validity=${aiResponse.data.candidates[0].content.parts[0].text}`);
+    }catch(e){
+      console.log(e);
+      toast.dismiss(loading);
+      toast.error("Failed to validate file.");
+    }finally{
+      if(loading){
+        toast.dismiss(loading);
+      }
+    }
+  }
+
 
     // Fetch uploaded files
     useEffect(() => {
@@ -96,7 +133,6 @@ export default function LandingPage() {
         try {
           const response = await axios.get('/api/get-uploads');
           const files = response.data.data || [];
-          console.log(files);
           setAllFiles(files);
           setFilteredFiles(files);
         } catch (error) {
@@ -104,7 +140,9 @@ export default function LandingPage() {
         }
       };
       fetchFiles();
-    }, [handleDelete]);
+    }, []);
+
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold text-gray-800 mb-6 text-center">Manage Your Files</h1>

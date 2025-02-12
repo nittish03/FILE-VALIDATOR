@@ -1,36 +1,35 @@
 'use client'
-import React,{useState,useEffect} from 'react';
-import { useParams } from "react-router-dom";
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
-// import { OCR } from "../components/OCR";
 export default function Report() {
-    const location = useLocation();
-    const { result} = location.state || {};
-    const [resultArray,setResultArray] = useState([])
+    const searchParams = useSearchParams();
+    const validity = searchParams.get('validity');
+
+    const [resultArray, setResultArray] = useState([]);
+
     useEffect(() => {
-        if(result){
-            setResultArray(result.split("**"))
+        if (validity) {
+            setResultArray(validity.split("**"));
         }
-    },[result])
+    }, [validity]);
 
     return (
-        <div className='w-full mx-auto px-2'>
-            <div className="px-10">
+        <div className='w-full max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg'>
+            <h1 className="text-2xl font-bold text-gray-800 mb-5">Report</h1>
 
-            <h1 className="text-2xl font-bold text-gray-800 mb-5">Report...</h1>
-        {
-            resultArray.map((item,index) => {
-                return (
-                    <div className='flex mb-2' key={index}>
-                        <h2>{index+1}. {item.split(":")[0]}</h2>
-                        <p>{item.split(":")[1]}</p>
-                    </div>
-                )
-            })
-        }
-
-            </div>
+            {resultArray.length > 0 ? (
+                resultArray.map((item, index) => {
+                    const parts = item.split(":");
+                    return (
+                        <div className='flex items-center gap-x-2 p-3 bg-gray-100 rounded-md mb-2' key={index}>
+                            <h2 className="text-lg font-semibold text-gray-700">{index + 1}. {parts[0] || "N/A"}</h2>
+                        </div>
+                    );
+                })
+            ) : (
+                <p className="text-gray-500">No report data available.</p>
+            )}
         </div>
-    ) ;
+    );
 }
