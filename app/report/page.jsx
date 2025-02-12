@@ -1,8 +1,8 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function Report() {
+function ReportContent() {
     const searchParams = useSearchParams();
     const validity = searchParams.get('validity');
 
@@ -31,5 +31,13 @@ export default function Report() {
                 <p className="text-gray-500">No report data available.</p>
             )}
         </div>
+    );
+}
+
+export default function Report() {
+    return (
+        <Suspense fallback={<p>Loading...</p>}>
+            <ReportContent />
+        </Suspense>
     );
 }
