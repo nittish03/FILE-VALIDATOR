@@ -83,6 +83,6 @@ model PdfDetails {
   pdf          String
   title        String
   type         String
-  result       String
+  result       String  @default("result")
   dateUploaded DateTime @default(now()) // Use DateTime for date storage
 }
