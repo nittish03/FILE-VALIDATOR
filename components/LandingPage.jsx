@@ -1,9 +1,10 @@
 'use client';
 import React, { useEffect, useState } from "react";
-import {toast} from "react-toastify";
+import { toast } from "react-toastify";
 import axios from "axios";
 import { MdDeleteForever } from "react-icons/md";
 import { useRouter } from "next/navigation";
+
 export default function LandingPage() {
   const [file, setFile] = useState(null);
   const [title, setTitle] = useState("");
@@ -11,8 +12,6 @@ export default function LandingPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredFiles, setFilteredFiles] = useState([]);
   const router = useRouter();
-
-
 
   // Filter files based on search
   useEffect(() => {
@@ -59,11 +58,9 @@ export default function LandingPage() {
       toast.dismiss(loadingToast);
       toast.success("File uploaded successfully.");
 
-      // Add new file to state instead of refreshing the page
       setAllFiles([response.data.data, ...allFiles]);
       setFilteredFiles([response.data.data, ...filteredFiles]);
 
-      // Reset form
       setFile(null);
       setTitle("");
     } catch (error) {
@@ -73,75 +70,56 @@ export default function LandingPage() {
   };
 
   // Handle file deletion
-  const handleDelete = async(id) =>{
+  const handleDelete = async (id) => {
     const loading = toast.loading("Deleting...");
-    try{
-      const response = await axios.post("/api/delete-upload",{id});
+    try {
+      await axios.post("/api/delete-upload", { id });
       toast.dismiss(loading);
       toast.success("File deleted successfully.");
-    }catch(e){
+      setAllFiles(allFiles.filter(file => file.id !== id));
+      setFilteredFiles(filteredFiles.filter(file => file.id !== id));
+    } catch (e) {
       console.log(e);
       toast.dismiss(loading);
       toast.error("Failed to delete file.");
-    }finally{
-      if(loading){
-        toast.dismiss(loading);
-      }
     }
-    
-  }
+  };
 
-  const handleValidity = async(id) =>{
+  const handleValidity = async (id) => {
     const loading = toast.loading("Validating...");
-    try{
-      const response = await axios.post("/api/get-single-upload",{id});
+    try {
+      const response = await axios.post("/api/get-single-upload", { id });
       const aiResponse = await axios({
-        url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${
-          process.env.NEXT_PUBLIC_GEMINI_API_KEY
-        }`,
+        url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
         method: "post",
         data: {
-          contents: [
-            {
-              parts: [
-                {
-                  text: `Tell me whether if the invoice is valid or not according to the invoice data i am providing you and why, INVOICE DATA :  ${response.data.data.result}`,
-                },
-              ],
-            },
-          ],
+          contents: [{ parts: [{ text: `Tell me if the invoice is valid and why, INVOICE DATA: ${response.data.data.result}` }] }],
         },
       });
       toast.dismiss(loading);
       toast.success("File validation successful.");
-      router.push( `/report?validity=${aiResponse.data.candidates[0].content.parts[0].text}`);
-    }catch(e){
+      router.push(`/report?validity=${aiResponse.data.candidates[0].content.parts[0].text}`);
+    } catch (e) {
       console.log(e);
       toast.dismiss(loading);
       toast.error("Failed to validate file.");
-    }finally{
-      if(loading){
-        toast.dismiss(loading);
-      }
     }
-  }
+  };
 
-
-    // Fetch uploaded files
-    useEffect(() => {
-      const fetchFiles = async () => {
-        try {
-          const response = await axios.get('/api/get-uploads');
-          const files = response.data.data || [];
-          setAllFiles(files);
-          setFilteredFiles(files);
-        } catch (error) {
-          toast.error("Failed to fetch documents.");
-        }
-      };
-      fetchFiles();
-    }, []);
-
+  // Fetch uploaded files
+  useEffect(() => {
+    const fetchFiles = async () => {
+      try {
+        const response = await axios.get("/api/get-uploads");
+        const files = response.data.data || [];
+        setAllFiles(files);
+        setFilteredFiles(files);
+      } catch (error) {
+        toast.error("Failed to fetch documents.");
+      }
+    };
+    fetchFiles();
+  }, []);
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -179,97 +157,51 @@ export default function LandingPage() {
         className="w-full px-4 py-2 mb-6 border rounded-lg focus:ring-2 focus:ring-blue-500"
       />
 
-
-
-
       {/* File List */}
-      <section>
-  <h2 className="text-2xl font-semibold text-[#2C3E50] mb-6">Your Uploaded Documents</h2>
-  <div className="bg-white rounded-lg shadow-lg">
-    
-    {/* Large screen view */}
-    <div className="hidden sm:block text-black">
-      <div className="grid grid-cols-4 bg-[#F4F6F7] py-4 px-6 font-medium text-[#2C3E50]">
-        <span>Document Name</span>
-        <span>Type</span>
-        <span>Uploaded On</span>
-        <span>Actions</span>
-      </div>
+      <section className="bg-white rounded-lg shadow-lg p-4">
+        <h2 className="text-2xl font-semibold text-black mb-4">Your Uploaded Documents</h2>
+        {filteredFiles.length > 0 ? (
+          filteredFiles.map((file) => (
+            <div key={file.id} className="flex justify-between text-black items-center border-b py-4">
+              <span className="font-medium">{file.title}</span>
+              <span className="">{file.type}</span>
 
-      {filteredFiles.length > 0 ? (
-        filteredFiles.map((file) => (
-          <div key={file.id} className="grid grid-cols-4 py-4 px-6 items-center border-b hover:bg-[#ECF0F1]">
-            <span>{file.title}</span>
-            <span>{file.type}</span>
-            <span>{file.dateUploaded}</span>
-            <div className="flex gap-4 justify-center items-center">
-              <button
-                className="px-2 py-2 text-sm font-medium text-[#3498DB] border border-[#3498DB] rounded-md hover:bg-[#3498DB] hover:text-white"
-                onClick={() => showFile(file.pdf)}
-              >
-                View
-              </button>
-              <MdDeleteForever
-                onClick={() => handleDelete(file.id)}
-                className="w-6 h-6 text-red-600 cursor-pointer hover:text-red-700"
-              />
-              <button
-                className="px-2 py-2 text-sm font-medium text-[#2ECC71] border border-[#2ECC71] rounded-md hover:bg-[#2ECC71] hover:text-white"
-                onClick={() => handleValidity(file.id)}
-              >
-                Check Validity
-              </button>
+<span className="text-sm">
+  {new Date(file.dateUploaded).toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true, // Enables 12-hour format with AM/PM
+  })}
+</span>
+
+
+              <div className="flex justify-center items-center gap-4">
+                <button
+                  className="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-600 hover:text-white"
+                  onClick={() => showFile(file.pdf)}
+                >
+                  View
+                </button>
+                <MdDeleteForever
+                  onClick={() => handleDelete(file.id)}
+                  className="w-6 h-6 text-red-600 cursor-pointer hover:text-red-700"
+                />
+                <button
+                  className="px-4 py-2 text-sm font-medium text-green-600 border border-green-600 rounded-md hover:bg-green-600 hover:text-white"
+                  onClick={() => handleValidity(file.id)}
+                >
+                  Check Validity
+                </button>
+              </div>
             </div>
-          </div>
-        ))
-      ) : (
-        <div className="text-center py-6 text-[#BDC3C7]">No documents found.</div>
-      )}
-    </div>
-
-    {/* Small screen view */}
-    <div className="sm:hidden ">
-      {filteredFiles.length > 0 ? (
-        filteredFiles.map((file) => (
-          <div key={file.id} className="border-b p-4 space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="font-semibold text-[#2C3E50]">{file.title}</span>
-              <span className="text-sm text-[#000]">{file.type}</span>
-            </div>
-            <div className="text-sm text-[#000]">Uploaded on: {file.dateUploaded}</div>
-            <div className="flex justify-center items-center gap-4">
-              <button
-                className="px-4 py-2 text-sm font-medium text-[#3498DB] border border-[#3498DB] rounded-md hover:bg-[#3498DB] hover:text-white"
-                onClick={() => showFile(file.pdf)}
-              >
-                View
-              </button>
-              <MdDeleteForever
-                onClick={() => handleDelete(file.id)}
-                className="w-6 h-6 text-red-600 cursor-pointer hover:text-red-700"
-              />
-              <button
-                className="px-4 py-2 text-sm font-medium text-[#2ECC71] border border-[#2ECC71] rounded-md hover:bg-[#2ECC71] hover:text-white"
-                onClick={() => handleValidity(file.id)}
-              >
-                Check Validity
-              </button>
-            </div>
-          </div>
-        ))
-      ) : (
-        <div className="text-center py-6 text-[#BDC3C7]">No documents found.</div>
-      )}
-    </div>
-
-  </div>
-</section>
-
-
-
-
-
-      
+          ))
+        ) : (
+          <div className="text-center py-6 text-gray-500">No documents found.</div>
+        )}
+      </section>
     </div>
   );
 }
