@@ -1,16 +1,18 @@
 "use client";
 import { useState } from "react";
 import NavLink from "next/link";
-import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import axios from "axios";
-import { toast } from "react-toastify";
+import { useRouter, usePathname } from "next/navigation";
 import { CgProfile } from "react-icons/cg";
+import { FiMenu, FiX } from "react-icons/fi";
+import { toast } from "react-toastify";
+import Button from '@/components/uiverse/Button'
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const { data: session } = useSession();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
     signOut();
@@ -19,34 +21,90 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="shadow-md bg-gradient-to-r from-green-500 to-blue-500 backdrop-blur-lg  flex justify-between items-center py-1 px-6 text-white font-inter fixed top-0 left-0 w-full z-50">
-      <div className="text-3xl font-extrabold font-koho text-white drop-shadow-lg">DECENTRA</div>
-      <div className="flex gap-6 text-base">
-        <NavLink href="/" className=" hover:text-green-100 transition">Home</NavLink>
-        <NavLink href="/dashboard" className=" hover:text-green-100 transition">Dashboard</NavLink>
-        <NavLink href="/prediction" className=" hover:text-green-100 transition">Prediction</NavLink>
-        <NavLink href="/map" className=" hover:text-green-100 transition">Map</NavLink>
-        <NavLink href="/healthInsights" className=" hover:text-green-100 transition">Health Insights</NavLink>
-        <NavLink href="/carbonEmission" className=" hover:text-green-100 transition">Carbon Emission</NavLink>
+    <div className="px-4 h-14 sticky top-0 inset-x-0 w-full bg-background/40 backdrop-blur-lg z-50">
+      <div className="flex items-center justify-between h-full mx-auto md:max-w-screen-xl">
+        <div className="flex items-center">
+          <span className="text-lg font-medium">FRONTEND</span>
+        </div>
 
+        {/* Mobile Menu Toggle */}
+        <button
+          className="md:hidden text-2xl transition-all duration-300 ease-in-out"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          {menuOpen ? <FiX /> : <FiMenu />}
+        </button>
+
+        {/* Desktop Menu */}
+        <ul className="hidden md:flex items-center gap-8 ">
+          {[
+            { name: "Home", href: "/" },
+            { name: "About", href: "/about" },
+          ].map((item) => (
+            <NavLink key={item.href} href={item.href} className="relative text-sm hover:text-foreground/80">
+              <span className={
+                pathname === item.href
+                  ? "after:absolute after:left-0 after:bottom-0 after:w-full after:h-0.5 after:bg-blue-600"
+                  : ""
+              }>
+                {item.name}
+              </span>
+            </NavLink>
+          ))}
+        </ul>
+
+        {/* Auth Controls */}
+        <div className="hidden md:flex items-center gap-4">
+          {session ? (
+            <div className="flex items-center gap-4">
+              <span className="text-lg font-koho">{session.user?.name?.split(" ")[0]}</span>
+              <button
+                className="flex items-center justify-center bg-white text-green-600 p-2 rounded-full hover:bg-green-200"
+                onClick={handleLogout}
+              >
+                <CgProfile size={30} />
+              </button>
+            </div>
+          ) : (
+            <NavLink href="/login">
+<Button purpose={"Get Started"}/>
+            </NavLink>
+          )}
+        </div>
       </div>
-      <div className="flex items-center">
-        {session ? (
-          <div className="flex items-center gap-4">
-            <span className="text-lg font-koho">{session.user?.name?.split(" ")[0]}</span>
+
+      {/* Mobile Menu */}
+      {menuOpen && (
+        <div className="md:hidden bg-black transition-all ease-in-out duration-200 absolute top-14 left-0 w-full bg-background/90 backdrop-blur-md shadow-md p-4 flex flex-col items-center gap-4">
+          {[
+            { name: "Home", href: "/" },
+            { name: "About", href: "/about" },
+          ].map((item) => (
+            <NavLink key={item.href} href={item.href} className="text-sm hover:text-foreground/80" onClick={() => setMenuOpen(false)}>
+              <span className={
+                pathname === item.href
+                  ? "border-b-2 border-blue-600"
+                  : ""
+              }>
+                {item.name}
+              </span>
+            </NavLink>
+          ))}
+
+          {session ? (
             <button
-              className="flex items-center justify-center bg-white text-green-600 p-2 rounded-full hover:bg-green-200"
+              className="mt-4 flex items-center gap-2 text-lg"
               onClick={handleLogout}
             >
-              <CgProfile size={30} />
+              Logout <CgProfile size={24} />
             </button>
-          </div>
-        ) : (
-          <Link href="/login">
-            <button className="py-2 px-4 bg-green-500 hover:bg-green-400 text-white rounded-lg text-lg">Login/Signup</button>
-          </Link>
-        )}
-      </div>
-    </nav>
+          ) : (
+            <NavLink href="/login" onClick={() => setMenuOpen(false)}>
+<Button purpose={"Get Started"}/>
+            </NavLink>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

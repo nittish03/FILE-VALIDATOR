@@ -1,11 +1,12 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { MessageCircleIcon, X, Send, Loader2 } from 'lucide-react';
+import { BorderBeam } from './ui/border-beam';
 
 const PollutionChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { text: "Hello! I'm your Pollution Information Assistant. What would you like to know about pollution?", sender: 'ai' }
+    { text: "Hello!", sender: 'ai' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -43,20 +44,27 @@ const PollutionChatbot = () => {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 right-20 z-50">
       {!isOpen && (
-        <button 
-          onClick={() => setIsOpen(true)}
-          className="bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-green-600 transition-all"
-        >
-          <MessageCircleIcon size={24} />
-        </button>
+        <div className="relative group">
+      <button
+      onClick={()=>{setIsOpen(true)}}
+      className="w-12 h-12 rounded-full border-none bg-gradient-to-r from-yellow-400 to-red-500 flex items-center justify-center shadow-lg cursor-pointer transition-transform hover:animate-[jello_0.7s]">
+      <MessageCircleIcon size={24} />
+<BorderBeam size={250} duration={2} />
+
+      </button>
+      <span className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-yellow-400 to-red-500 text-white text-xs px-2 py-1 rounded-md transition-all duration-300">
+        Chat
+        <span className="absolute left-1/2 -translate-x-1/2 bottom-[-4px] w-2 h-2 bg-red-500 rotate-45"></span>
+      </span>
+    </div>
       )}
 
       {isOpen && (
-        <div className="fixed bottom-4 right-4 w-80 h-[500px] bg-white rounded-lg shadow-xl border flex flex-col">
-          <div className="bg-green-500 text-white p-3 flex justify-between items-center rounded-t-lg">
-            <h3 className="font-bold">Green Sphere Chatbot</h3>
+        <div className="fixed bottom-4 right-20 w-80 h-[500px] bg-white rounded-lg shadow-xl border border-black flex flex-col">
+          <div className="bg-purple-500 text-black p-3 flex justify-between items-center rounded-t-lg">
+            <h3 className="font-bold">Chatbot</h3>
             <button onClick={() => setIsOpen(false)}>
               <X size={24} />
             </button>
@@ -68,7 +76,7 @@ const PollutionChatbot = () => {
                 key={index} 
                 className={`p-2 rounded-lg max-w-[80%] ${
                   msg.sender === 'user' 
-                  ? 'bg-green-100 text-green-800 ml-auto' 
+                  ? 'bg-green-100 text-purple-800 ml-auto' 
                   : 'bg-gray-100 text-gray-800 mr-auto'
                 }`}
               >
@@ -88,16 +96,16 @@ const PollutionChatbot = () => {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about pollution..."
-              className="flex-grow p-2 border rounded-l-lg"
+              placeholder="Ask Anything..."
+              className="flex-grow p-2 border rounded-l-lg text-black"
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             />
             <button 
               onClick={handleSendMessage}
-              className="bg-green-500 text-white p-2 rounded-r-lg"
+              className="bg-purple-500 text-black px-3 rounded-r-lg"
               disabled={isLoading}
             >
-              <Send size={20} />
+              <Send  size={20} />
             </button>
           </div>
         </div>

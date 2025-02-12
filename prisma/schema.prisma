@@ -77,3 +77,12 @@ model VerificationToken {
   @@unique([identifier, token])
   @@map("verification_tokens")
 }
+
+model PdfDetails {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId // Ensure ObjectId type for MongoDB
+  pdf          String
+  title        String
+  type         String
+  result       String
+  dateUploaded DateTime @default(now()) // Use DateTime for date storage
+}
