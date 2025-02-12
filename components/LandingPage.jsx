@@ -93,7 +93,15 @@ export default function LandingPage() {
         url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
         method: "post",
         data: {
-          contents: [{ parts: [{ text: `Tell me if the invoice is valid and why, INVOICE DATA: ${response.data.data.result}` }] }],
+          contents: [{ parts: [{ text: `You are an expert in document validation and compliance analysis. Your task is to analyze the provided document data and determine its validity based on completeness, consistency, and authenticity.  
+
+Assess the document for missing essential details, formatting errors, inconsistencies, or potential signs of forgery. Clearly state:  
+1. **Whether the document is valid or not** (Yes/No).  
+2. **Why** (Highlight any missing details, errors, or inconsistencies).  
+
+DOCUMENT DATA: ${response.data.data.result}
+
+` }] }],
         },
       });
       toast.dismiss(loading);
@@ -122,8 +130,8 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold text-gray-800 mb-6 text-center">Manage Your Files</h1>
+    <div className="max-w-5xl mx-auto px-4">
+      <h1 className="text-4xl font-bold mb-6 text-center">Validate Your documents</h1>
 
       {/* Upload Section */}
       <section className="bg-white p-6 rounded-lg shadow-md mb-6">
